@@ -3,16 +3,16 @@ from PIL import Image
 from facenet_pytorch import MTCNN, InceptionResnetV1
 import torch
 import os
-import datetime
 import numpy as np
 import faiss
 import time
 import requests
+
 workers = 0 if os.name == 'nt' else 4
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print('Running on device: {}'.format(device))
 
-data=torch.load('./demo.pt')
+data=torch.load('./demo1.pt')
 names=data[0]
 embeddings=data[1]
 
@@ -66,27 +66,30 @@ def recognition(frame_):
         if prob>0.95:
             img_embedding=resnet(img_cropped.unsqueeze(0).to(device)).detach()
             
-            
+            #st_fa=time.time()
             img_emb=img_embedding.to(cpu)
+            
             query=np.array(img_emb).astype("float32")
             D,I=index.search(query,5) #D es una lista de listas que contiene las distancias obtenidas por la busqueda de similaridades, I son los indices de estos.
             
             
             name,id=makeSurePerson(I.flatten())
             min_dist=D.flatten()[id]
+            #ed_fa=time.time()
+            #print('search time: ',ed_fa-st_fa)
+        
             
-            
+            print('dist: ',min_dist)
             box=boxes[0]
             original=img.copy()
             if min_dist<0.6:
-                #print(name)
+                print(name)
                 img=cv2.putText(img,name+' '+str(min_dist),(int(box[0]),int(box[1])),cv2.FONT_HERSHEY_SIMPLEX,1,(0,255,0),1,cv2.LINE_AA)
-                #requests.post("http://127.0.0.1:5000/attendance",json={'nombre':name})
+                #enc_string=base64.b64encode(img)
+                requests.post("http://127.0.0.1:5000/attendance",json={'nombre':name,'img':img.tolist()})
             img=cv2.rectangle(img,(int(box[0]),int(box[1])),(int(box[2]),int(box[3])),(255,0,0),2)
-            time.sleep(1)
+            time.sleep(0.5)
     return img
-
-
 
 
 upper_left = (650, 280)
