@@ -7,6 +7,8 @@ from facenet_pytorch import MTCNN, InceptionResnetV1
 from torchvision import datasets
 from torch.utils.data import DataLoader
 import torch
+import cv2
+import numpy as np
 import threading
 
 from text_spech import text_to_speech
@@ -24,25 +26,64 @@ def hello_world():
 
 @app.route('/attendance',methods=['POST'])
 def SaveData():
-
+    
+    img_data=request.json['img']
     nombre=request.json['nombre']
     
     #instanciamos la fecha y hora para poder hacer consultas en la base de datos
     now=datetime.datetime.now()
     hora=now.strftime("%H:%M:%S")
     fecha=now.strftime("%d/%m/%Y")
-    #si el nombre del usuario con la fecha actual no existe, se inserta el nombre con la fecha actual
-    if GetDB(nombre,fecha)<1:
-        info_db=(3,nombre,fecha,hora,None)
-        InsertDB(info_db)
-    else:# si el usuario con el nombre actual existe, se actuliza la hora de salida
-        UpdateDB(nombre,hora,fecha)
+    f=fecha.split('/')
+    f=f[0]+'-'+f[1]+'-'+f[2]
+    path='./historial/'+f+'/'+nombre
     
+    #si el nombre del usuario con la fecha actual no existe, se inserta el nombre con la fecha actual
+    getdb,data=GetDB(nombre,fecha)
+    if getdb<1:
+        #se crea una carpeta con el nombre del usuario
+        
+        path_enter=path+'/arrive/'
+        if not os.path.exists(path_enter):
+            os.makedirs(path_enter)
+            
+        path_img=path_enter+'arrive.png'
+        info_db=(nombre,fecha,hora,None,path_img,None,0)
+       
+        cv2.imwrite(path_img,np.array(img_data))
+        InsertDB(info_db)
+        
+        def worker():
+            text_to_speech(nombre+", Bienvenido a smart city")
+            
+        
+        
+    else:# si el usuario con el nombre actual existe, se actualiza la hora de salida
+        
+        path_leave=path+'/leave/'
+        if not os.path.exists(path_leave):
+            os.makedirs(path_leave)
+        path_img=path_leave+'leave.png'
+        status=data[0][-1]
+        
+        msg=''
+        if status==0:
+            st=1
+            msg='Nos vemos ' 
+        else:
+            st=0
+            msg='Bienvenido de vuelta '
+        
+        UpdateDB(nombre,hora,fecha,path_img,st)
+        cv2.imwrite(path_img,np.array(img_data))
+        
+        def worker():
+            text_to_speech(msg+nombre)
+        
     #instancias el trabajor para correr en un hilo diferente, la confirmacion de asistencia
-    def worker():
-        text_to_speech(nombre)
     hilo1=threading.Thread(target=worker)
     hilo1.start()
+    
 
     return nombre
 
