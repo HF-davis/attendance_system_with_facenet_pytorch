@@ -1,5 +1,5 @@
 import psycopg2
-
+import datetime
 def InsertDB(data):
 
     try:
@@ -12,7 +12,7 @@ def InsertDB(data):
         )
 
         cur=connection.cursor()
-        command="INSERT INTO users1(ID,NOMBRE,FECHA,HORA_ENTRADA,HORA_SALIDA) VALUES (%s,%s,%s,%s,%s) "
+        command="INSERT INTO users1(NOMBRE,FECHA,HORA_ENTRADA,HORA_SALIDA,FOTO_ENTRADA,FOTO_SALIDA,STATE) VALUES (%s,%s,%s,%s,%s,%s,%s) "
         cur.execute(command,data)
         connection.commit()
         print("Datos guardados correctamente ")
@@ -37,17 +37,17 @@ def GetDB(name,fecha):
         dat=(name,fecha)
         cur.execute(command,dat)
         result=cur.fetchall()
-        print("Los datos obtenidos son: ", result )
-        
+        print("Los datos obtenidos son: ", result)
+            
         connection.close()
-        return len(result)
+        return len(result),result
         
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
 
 
 
-def UpdateDB(name,leave_data,fecha):
+def UpdateDB(name,leave_data,fecha,leave_photo,st):
     try:
         connection=psycopg2.connect(
             host="localhost",
@@ -59,8 +59,9 @@ def UpdateDB(name,leave_data,fecha):
 
         cur=connection.cursor()
     
-        update="""UPDATE users1 SET hora_salida=%s WHERE nombre=%s AND fecha=%s"""
-        dat=(leave_data,name,fecha)
+        update="""UPDATE users1 SET hora_salida=%s,foto_salida=%s,state=%s WHERE nombre=%s AND fecha=%s"""
+        dat=(leave_data,leave_photo,st,name,fecha)
+        
         cur.execute(update,dat)
         connection.commit()
         count=cur.rowcount
