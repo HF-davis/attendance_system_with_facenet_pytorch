@@ -10,7 +10,7 @@ import torch
 import cv2
 import numpy as np
 import threading
-
+from utils import train_model,inference
 from text_spech import text_to_speech
 from database import InsertDB,UpdateDB,GetDB
 
@@ -107,7 +107,9 @@ def User():
 
 @app.route('/SavePhoto',methods=['POST'])
 def Data():
-    directory='train'
+    directory='./train'
+    if not os.path.exists(directory):
+        os.mkdir(directory)
     img_data=request.json['img_lst']
     data_name=request.json['data']
     path_name=data_name["nombre"]+' '+data_name["apellido"]
@@ -117,7 +119,7 @@ def Data():
         os.makedirs(path)    
     
     print(path)
-    #if os.path.exists()
+    
     
     
     
@@ -136,36 +138,12 @@ def Data():
 
 @app.route('/Train',methods=['GET'])
 def Training():
-    
-    mtcnn = MTCNN(
-    image_size=160, margin=0, min_face_size=20,keep_all=False,
-    thresholds=[0.6, 0.7, 0.7], factor=0.709, post_process=True,
-    device=device
-    )
-
-    resnet = InceptionResnetV1(pretrained='vggface2').eval()
-
-    workers = 0 if os.name == 'nt' else 4
-    def collate_fn(x):
-        return x[0]
-
     path_train='./train'
-    dataset = datasets.ImageFolder(path_train)
-    dataset.idx_to_class = {i:c for c, i in dataset.class_to_idx.items()}
-    loader = DataLoader(dataset, collate_fn=collate_fn, num_workers=workers)
-
-    name_list=[]
-    embedding_list=[]
-    for img, idx in loader:
-        face, prob = mtcnn(img, return_prob=True) 
-        if face is not None and prob>0.92:
-            emb = resnet(face.unsqueeze(0)).to(device) 
-            embedding_list.append(emb.detach()) 
-            name_list.append(dataset.idx_to_class[idx]) 
-
-    data = [embedding_list, name_list]
-    torch.save(data, 'data.pt') # saving data.pt file    
-    if os.path.exists('data.pt'):
+    data=train_model(path_train)
+   #data == [name,embeddings]
+    torch.save(data, './demo/data_server.pt') # saving data.pt file 
+       
+    if os.path.exists('./demo/data_server.pt'):
         response=jsonify({'msg':'data file was created successfully'})
         response.status_code=200
         return response
@@ -174,5 +152,14 @@ def Training():
     response.status_code=500
     return response
 
+@app.route('/Inference',methods=['GET'])
+def realTime():
+    #path_file='./demo/data_server.pt'
+    path_file='./demo/one_per.pt'
+    inference(path_file)
+    response=jsonify({'msg':'Inference was finished...'})
+    response.status_code=200
+    return response
+    
 if __name__=='__main__':
     app.run(debug=True)
