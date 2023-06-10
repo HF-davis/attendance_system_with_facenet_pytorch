@@ -7,8 +7,8 @@ import os
 from tqdm import tqdm
 import gc
 #First we need to preproces data, we can do that with preprocess_data.py script
-path_t='./one_face_per_person'
-
+path_t='./demo/lab_data'
+path_dest='' #ruta de donde se va a almacenar el archivo .pt
 print(path_t)
   
 workers = 0 if os.name == 'nt' else 4
@@ -39,7 +39,7 @@ aligned = []
 names = []
 for x, y in tqdm(loader):
       x_aligned, prob = mtcnn(x, return_prob=True)
-      if x_aligned is not None:
+      if x_aligned is not None and prob>0.92:
           #print('Face detected with probability: {:8f}'.format(prob))
           aligned.append(x_aligned)
           names.append(dataset.idx_to_class[y])
@@ -51,24 +51,29 @@ ebb=[]
 aligned = torch.stack(aligned).to(device)
 n=int(len(aligned)/batch)
   #start_t=time.time()
+print('aligned_size: ',len(aligned))
+print('names_size:',len(names))
+
 for i in tqdm(range(1,n+1)):
     if i*batch<len(aligned):
-      count=count+i*batch-start
+      #count=count+i*batch-start
       ebb.append(resnet(aligned[start:i*batch]).detach().to(device))
       start=i*batch
     if (i+1)*batch>len(aligned):
       ebb.append(resnet(aligned[start:len(aligned)]).detach().to(device))
 
-embeddings=torch.stack(ebb)
-m=embeddings[0]
- 
-for i in tqdm(range(1,len(embeddings))):
-    m=torch.vstack((m,embeddings[i]))
-print(m.size())
-data=[names,m]
-                                                                                                                                                      
-#embeddings = resnet(aligned).detach().cpu()                                                                                                                                                                                                                                                                                                           
+##embeddings=torch.stack(ebb)
+##
+embeddings=[]
+print('ebb[0][0]: ',ebb[0][0].size())
+for i in range(len(ebb)):
+      for j in ebb[i]:
+            embeddings.append(j.unsqueeze(0))
+            
+print('embedding_size: ',len(embeddings))
 
-torch.save(data,'one_per.pt')
-if os.path.exists('oe_per.pt'):
+data=[names,embeddings]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+torch.save(data,path_dest)
+if os.path.exists(path_dest):
     print('data file was created successfully')
