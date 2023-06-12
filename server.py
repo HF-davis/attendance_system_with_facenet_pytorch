@@ -97,7 +97,7 @@ def User():
                 unique_list.append(x)
         return unique_list
     load_data=torch.load('data.pt')
-    name_list=load_data[1]
+    name_list=load_data[0]
 
     print(unique(name_list))
     #print(type(name_list))
