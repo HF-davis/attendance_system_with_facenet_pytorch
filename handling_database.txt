@@ -1,0 +1,15 @@
+##crear la base de datos
+##esquema para el sistema de asistencia en smart city
+
+CREATE TABLE users1(
+nombre VARCHAR(50),
+fecha DATE,
+hora_entrada TIME,
+hora_salida TIME,
+foto_entrada VARCHAR(100),
+foto_salida VARCHAR(100),
+state int);
+
+#insertar elementos a la tabla users en la base de datos attendancesc
+
+insert into users1 values('Davis Alderete','2023-05-17','11:23:44','17:59:59','c:/users/pycharm/persona/foto.jpg','c:/users/pycharm/persona/foto.jpg',0);
