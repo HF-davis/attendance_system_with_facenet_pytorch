@@ -12,7 +12,7 @@ workers = 0 if os.name == 'nt' else 4
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print('Running on device: {}'.format(device))
 
-data=torch.load('./demo1.pt')
+data=torch.load('./lab_data_sc.pt')
 names=data[0]
 embeddings=data[1]
 
