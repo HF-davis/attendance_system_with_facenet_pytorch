@@ -89,8 +89,9 @@ def recognition(frame_):
                 img=cv2.putText(img,name+' '+str(min_dist),(int(box[0]),int(box[1])),cv2.FONT_HERSHEY_SIMPLEX,1,(0,255,0),1,cv2.LINE_AA)
                 #enc_string=base64.b64encode(img)
                 requests.post("http://127.0.0.1:5000/attendance",json={'nombre':name,'img':img.tolist()})
+		time.sleep(2)
             img=cv2.rectangle(img,(int(box[0]),int(box[1])),(int(box[2]),int(box[3])),(255,0,0),2)
-            time.sleep(0.5)
+            
     return img
   
   
