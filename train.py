@@ -7,7 +7,8 @@ import os
 from tqdm import tqdm
 import gc
 #First we need to preproces data, we can do that with preprocess_data.py script
-path_t='./demo/lab_data'
+
+path_t='./demo/lab_data' #ruta de entrenamiento, en donde se encuentran las fotos
 path_dest='' #ruta de donde se va a almacenar el archivo .pt
 print(path_t)
   
