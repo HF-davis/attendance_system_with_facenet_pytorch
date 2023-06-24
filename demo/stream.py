@@ -136,10 +136,11 @@ class WebcamStream :
     def stop(self):
         self.stopped = True
 
+#cambiar el tamaño de la region de interes
 upper_left = (600, 150)
 bottom_right = (850, 500)
 
-webcam_stream = WebcamStream(stream_id='rtsp://admin:Hik12345@192.168.20.96:554/Streaming/channels/101/') # 0 id for main camera
+webcam_stream = WebcamStream(stream_id='') # 0 para la camara principal, colocar el link de la camara IP
 webcam_stream.start()# processing frames in input stream
 num_frames_processed = 0 
 start = time.time()
