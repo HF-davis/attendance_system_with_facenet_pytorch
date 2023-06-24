@@ -14,3 +14,9 @@ python server.py
 ```
 El servidor es el encargado de manejar el sistema, el servidor se encargar de registrar en la base de datos, emitir la señal de voz para que el usuario
 sepa que el sistema lo ha reconocido, tomar las fotos necesarias para el entrenamiento del modelo (esto desde el front-end), entrenar el modelo de manera directa (esto desde el front-end), etc.
+
+# Reconocimiento en tiempo real
+El script <strong>stream.py</strong> se encarga de correr el reconocimiento en tiempo real, primero se debe correr el servidor y luego iniciar el reconocimiento en tiempo real.
+```python
+python stream.py
+```
